@@ -44,7 +44,7 @@ AimBotGroup:AddDropdown("Hitbox", {
 	Default = 1,
 	Multi = false,
 	Text = "Hitbox",
-	Tooltip = "Select target hitbox",
+	Tooltip = "Select target hitbox: Head or Body",
 	Callback = function(Value)
 		Library:Notify({
 			Title = "scriptBOB",
@@ -197,98 +197,77 @@ MiscGroup:AddSlider("FlySpeed", {
 	end,
 })
 
-local MiscGroup2 = Tabs.Misc:AddRightGroupbox("Combat", "sword")
+local MiscGroup2 = Tabs.Misc:AddRightGroupbox("ESP", "eye")
 
-MiscGroup2:AddToggle("GodMode", {
-	Text = "God Mode",
-	Tooltip = "Take no damage",
+MiscGroup2:AddToggle("PlayerESP", {
+	Text = "Player ESP",
+	Tooltip = "See players through walls",
 	Default = false,
-	Risky = true,
 	Callback = function(Value)
 		Library:Notify({
 			Title = "scriptBOB",
-			Description = Value and "God Mode enabled! (Risky)" or "God Mode disabled!",
+			Description = Value and "Player ESP enabled!" or "Player ESP disabled!",
 			Duration = 3,
 		})
 	end,
 })
 
-MiscGroup2:AddToggle("Fullbright", {
-	Text = "Fullbright",
-	Tooltip = "Remove darkness from the map",
-	Default = false,
+MiscGroup2:AddColorPicker("PlayerESPColor", {
+	Default = Color3.new(1, 0, 0),
+	Title = "Player Color",
 	Callback = function(Value)
-		if Value then
-			game:GetService("Lighting").Brightness = 2
-			game:GetService("Lighting").ClockTime = 14
-			game:GetService("Lighting").GlobalShadows = false
-			game:GetService("Lighting").Ambient = Color3.new(1, 1, 1)
-			game:GetService("Lighting").OutdoorAmbient = Color3.new(1, 1, 1)
-		else
-			game:GetService("Lighting").Brightness = 1
-			game:GetService("Lighting").ClockTime = 12
-			game:GetService("Lighting").GlobalShadows = true
-			game:GetService("Lighting").Ambient = Color3.new(0, 0, 0)
-			game:GetService("Lighting").OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
-		end
 	end,
 })
 
-MiscGroup2:AddToggle("AutoReload", {
-	Text = "Auto Reload",
-	Tooltip = "Automatically reload weapon when empty",
-	Default = false,
+MiscGroup2:AddToggle("PlayerESPName", {
+	Text = "Show Names",
+	Tooltip = "Show player names on ESP",
+	Default = true,
 	Callback = function(Value)
-		Library:Notify({
-			Title = "scriptBOB",
-			Description = Value and "Auto Reload enabled!" or "Auto Reload disabled!",
-			Duration = 3,
-		})
 	end,
 })
 
-MiscGroup2:AddToggle("NoRecoil", {
-	Text = "No Recoil",
-	Tooltip = "Remove weapon recoil",
-	Default = false,
+MiscGroup2:AddToggle("PlayerESPDistance", {
+	Text = "Show Distance",
+	Tooltip = "Show distance to players",
+	Default = true,
 	Callback = function(Value)
-		Library:Notify({
-			Title = "scriptBOB",
-			Description = Value and "No Recoil enabled!" or "No Recoil disabled!",
-			Duration = 3,
-		})
 	end,
 })
 
-MiscGroup2:AddToggle("NoSpread", {
-	Text = "No Spread",
-	Tooltip = "Remove bullet spread",
-	Default = false,
+MiscGroup2:AddToggle("PlayerESPHealth", {
+	Text = "Show Health",
+	Tooltip = "Show player health bar",
+	Default = true,
 	Callback = function(Value)
-		Library:Notify({
-			Title = "scriptBOB",
-			Description = Value and "No Spread enabled!" or "No Spread disabled!",
-			Duration = 3,
-		})
 	end,
 })
 
-MiscGroup2:AddToggle("InstantKill", {
-	Text = "Instant Kill",
-	Tooltip = "One shot kill",
-	Default = false,
-	Risky = true,
+MiscGroup2:AddToggle("PlayerESPBox", {
+	Text = "Box ESP",
+	Tooltip = "Draw box around players",
+	Default = true,
 	Callback = function(Value)
-		Library:Notify({
-			Title = "scriptBOB",
-			Description = Value and "Instant Kill enabled! (Risky)" or "Instant Kill disabled!",
-			Duration = 3,
-		})
+	end,
+})
+
+MiscGroup2:AddToggle("PlayerESPTracer", {
+	Text = "Tracer ESP",
+	Tooltip = "Draw line from screen center to players",
+	Default = false,
+	Callback = function(Value)
+	end,
+})
+
+MiscGroup2:AddColorPicker("TracerColor", {
+	Default = Color3.new(0, 1, 1),
+	Title = "Tracer Color",
+	Callback = function(Value)
 	end,
 })
 
 MiscGroup2:AddDivider()
-MiscGroup2:AddLabel("scriptBOB v1.0.0 - Combat")
+MiscGroup2:AddLabel("scriptBOB v1.0.0 - ESP")
 
 local SettingsGroupBox = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "settings")
 
@@ -330,7 +309,7 @@ local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
-local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -343,6 +322,165 @@ FOV_Circle.Thickness = 1.5
 FOV_Circle.NumSides = 64
 FOV_Circle.Filled = false
 FOV_Circle.Transparency = 0.7
+
+local ESPObjects = {}
+
+local function createESP(player)
+	if player == LocalPlayer then return end
+	if ESPObjects[player] then return end
+
+	local espData = {
+		box = Drawing.new("Square"),
+		name = Drawing.new("Text"),
+		distance = Drawing.new("Text"),
+		healthBar = Drawing.new("Square"),
+		healthBarBg = Drawing.new("Square"),
+		tracer = Drawing.new("Line"),
+	}
+
+	espData.box.Visible = false
+	espData.box.Thickness = 1
+	espData.box.Filled = false
+	espData.box.Transparency = 1
+
+	espData.name.Visible = false
+	espData.name.Size = 14
+	espData.name.Center = true
+	espData.name.Outline = true
+	espData.name.Font = Drawing.Fonts.UI
+
+	espData.distance.Visible = false
+	espData.distance.Size = 12
+	espData.distance.Center = true
+	espData.distance.Outline = true
+	espData.distance.Font = Drawing.Fonts.UI
+
+	espData.healthBar.Visible = false
+	espData.healthBar.Filled = true
+	espData.healthBar.Transparency = 1
+
+	espData.healthBarBg.Visible = false
+	espData.healthBarBg.Filled = true
+	espData.healthBarBg.Color = Color3.new(0, 0, 0)
+	espData.healthBarBg.Transparency = 0.5
+
+	espData.tracer.Visible = false
+	espData.tracer.Thickness = 1
+	espData.tracer.Transparency = 0.7
+
+	ESPObjects[player] = espData
+end
+
+local function removeESP(player)
+	if not ESPObjects[player] then return end
+	for _, obj in pairs(ESPObjects[player]) do
+		obj:Remove()
+	end
+	ESPObjects[player] = nil
+end
+
+local function updateESP()
+	for player, espData in pairs(ESPObjects) do
+		if not player or not player.Character then
+			for _, obj in pairs(espData) do
+				obj.Visible = false
+			end
+			continue
+		end
+
+		local character = player.Character
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+		local head = character:FindFirstChild("Head")
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+		if not hrp or not head or not humanoid or humanoid.Health <= 0 then
+			for _, obj in pairs(espData) do
+				obj.Visible = false
+			end
+			continue
+		end
+
+		local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+		if not onScreen then
+			for _, obj in pairs(espData) do
+				obj.Visible = false
+			end
+			continue
+		end
+
+		local playerColor = Options.PlayerESPColor and Options.PlayerESPColor.Value or Color3.new(1, 0, 0)
+		local tracerColor = Options.TracerColor and Options.TracerColor.Value or Color3.new(0, 1, 1)
+		local showNames = Toggles.PlayerESPName and Toggles.PlayerESPName.Value
+		local showDist = Toggles.PlayerESPDistance and Toggles.PlayerESPDistance.Value
+		local showHealth = Toggles.PlayerESPHealth and Toggles.PlayerESPHealth.Value
+		local showBox = Toggles.PlayerESPBox and Toggles.PlayerESPBox.Value
+		local showTracer = Toggles.PlayerESPTracer and Toggles.PlayerESPTracer.Value
+
+		local localChar = LocalPlayer.Character
+		local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
+		local distance = localHrp and math.floor((localHrp.Position - hrp.Position).Magnitude) or 0
+
+		local headPos = Camera:WorldToViewportPoint(head.Position)
+		local footPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+		local boxHeight = math.abs(headPos.Y - footPos.Y)
+		local boxWidth = boxHeight * 0.6
+
+		if showBox then
+			espData.box.Visible = true
+			espData.box.Size = Vector2.new(boxWidth, boxHeight)
+			espData.box.Position = Vector2.new(pos.X - boxWidth / 2, pos.Y - boxHeight / 2)
+			espData.box.Color = playerColor
+		else
+			espData.box.Visible = false
+		end
+
+		if showNames then
+			espData.name.Visible = true
+			espData.name.Position = Vector2.new(pos.X, pos.Y - boxHeight / 2 - 15)
+			espData.name.Text = player.Name
+			espData.name.Color = playerColor
+		else
+			espData.name.Visible = false
+		end
+
+		if showDist then
+			espData.distance.Visible = true
+			espData.distance.Position = Vector2.new(pos.X, pos.Y + boxHeight / 2 + 5)
+			espData.distance.Text = tostring(distance) .. " studs"
+			espData.distance.Color = playerColor
+		else
+			espData.distance.Visible = false
+		end
+
+		if showHealth then
+			espData.healthBarBg.Visible = true
+			espData.healthBar.Visible = true
+			local healthPercent = humanoid.Health / humanoid.MaxHealth
+			local barHeight = boxHeight * 0.8
+			local barWidth = 3
+			local barPos = Vector2.new(pos.X - boxWidth / 2 - 8, pos.Y - boxHeight / 2 + (boxHeight - barHeight) / 2)
+
+			espData.healthBarBg.Size = Vector2.new(barWidth, barHeight)
+			espData.healthBarBg.Position = barPos
+
+			espData.healthBar.Size = Vector2.new(barWidth, barHeight * healthPercent)
+			espData.healthBar.Position = Vector2.new(barPos.X, barPos.Y + barHeight * (1 - healthPercent))
+			espData.healthBar.Color = Color3.new(1 - healthPercent, healthPercent, 0)
+		else
+			espData.healthBarBg.Visible = false
+			espData.healthBar.Visible = false
+		end
+
+		if showTracer then
+			espData.tracer.Visible = true
+			espData.tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+			espData.tracer.To = Vector2.new(pos.X, pos.Y + boxHeight / 2)
+			espData.tracer.Color = tracerColor
+		else
+			espData.tracer.Visible = false
+		end
+	end
+end
 
 local function getClosestPlayer(throughWalls, fov, hitbox)
 	local character = LocalPlayer.Character
@@ -420,6 +558,19 @@ RunService.RenderStepped:Connect(function()
 			else
 				Camera.CFrame = targetCFrame
 			end
+		end
+	end
+
+	if Toggles.PlayerESP and Toggles.PlayerESP.Value then
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer then
+				createESP(player)
+			end
+		end
+		updateESP()
+	else
+		for player, _ in pairs(ESPObjects) do
+			removeESP(player)
 		end
 	end
 end)
@@ -516,89 +667,6 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
-	if Toggles.GodMode and Toggles.GodMode.Value then
-		local character = LocalPlayer.Character
-		if character then
-			local humanoid = character:FindFirstChildOfClass("Humanoid")
-			if humanoid then
-				humanoid.Health = humanoid.MaxHealth
-				humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-			end
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if Toggles.AutoReload and Toggles.AutoReload.Value then
-		local character = LocalPlayer.Character
-		if character then
-			for _, tool in pairs(character:GetChildren()) do
-				if tool:IsA("Tool") then
-					local ammo = tool:FindFirstChild("Ammo") or tool:FindFirstChild(" ammo") or tool:FindFirstChild("CurrentAmmo")
-					if ammo and ammo:IsA("NumberValue") and ammo.Value <= 0 then
-						local reloadEvent = tool:FindFirstChild("Reload") or tool:FindFirstChild("ReloadEvent")
-						if reloadEvent and reloadEvent:IsA("RemoteEvent") then
-							reloadEvent:FireServer()
-						end
-					end
-				end
-			end
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if Toggles.NoRecoil and Toggles.NoRecoil.Value then
-		local character = LocalPlayer.Character
-		if character then
-			for _, tool in pairs(character:GetChildren()) do
-				if tool:IsA("Tool") then
-					for _, v in pairs(tool:GetDescendants()) do
-						if v:IsA("NumberValue") and (v.Name:lower():find("recoil") or v.Name:lower():find("kick")) then
-							v.Value = 0
-						end
-					end
-				end
-			end
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if Toggles.NoSpread and Toggles.NoSpread.Value then
-		local character = LocalPlayer.Character
-		if character then
-			for _, tool in pairs(character:GetChildren()) do
-				if tool:IsA("Tool") then
-					for _, v in pairs(tool:GetDescendants()) do
-						if v:IsA("NumberValue") and (v.Name:lower():find("spread") or v.Name:lower():find("accuracy") or v.Name:lower():find("bulletspread")) then
-							v.Value = 0
-						end
-					end
-				end
-			end
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if Toggles.InstantKill and Toggles.InstantKill.Value then
-		local character = LocalPlayer.Character
-		if character then
-			for _, tool in pairs(character:GetChildren()) do
-				if tool:IsA("Tool") then
-					for _, v in pairs(tool:GetDescendants()) do
-						if v:IsA("NumberValue") and (v.Name:lower():find("damage") or v.Name:lower():find("dmg") or v.Name:lower():find("hitdamage")) then
-							v.Value = 999999
-						end
-					end
-				end
-			end
-		end
-	end
-end)
-
 LocalPlayer.CharacterAdded:Connect(function(character)
 	wait(0.5)
 	if Toggles.WalkSpeed and Toggles.WalkSpeed.Value then
@@ -615,8 +683,12 @@ LocalPlayer.CharacterAdded:Connect(function(character)
 	end
 end)
 
+Players.PlayerRemoving:Connect(function(player)
+	removeESP(player)
+end)
+
 Library:Notify({
 	Title = "scriptBOB",
-	Description = "Loaded successfully! v1.0.0 - War Tycoon",
+	Description = "Loaded successfully! v1.0.0",
 	Duration = 5,
 })
