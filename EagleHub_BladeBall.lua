@@ -12,7 +12,7 @@ Library.ShowToggleFrameInKeybinds = true
 local Window = Library:CreateWindow({
 	Title = "Eagle Hub",
 	Footer = "version: 1.0.0",
-	Icon = 95816097006870,
+	Icon = 17686742636,
 	NotifySide = "Right",
 	ShowCustomCursor = true,
 	MobileButtonsSide = "Left",
@@ -189,17 +189,48 @@ local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "EagleHubESP"
 ESPFolder.Parent = CoreGui
 
+local BallCache = nil
+local BallCacheTime = 0
+
 local function getBall()
+	local now = tick()
+	if BallCache and now - BallCacheTime < 0.5 then
+		return BallCache
+	end
+
 	for _, v in pairs(Workspace:GetDescendants()) do
-		if v:IsA("BasePart") and (v.Name:lower():find("ball") or v.Name:lower():find("swordball") or v.Name:lower():find("blade") or v.Name:lower():find("target")) then
-			return v
+		if v:IsA("BasePart") then
+			local n = v.Name:lower()
+			if n:find("ball") or n:find("swordball") or n:find("blade") or n:find("target") or n:find("projectile") or n:find("sphere") then
+				if v.Size.Magnitude > 0.5 and v.Size.Magnitude < 15 then
+					BallCache = v
+					BallCacheTime = now
+					return v
+				end
+			end
 		end
 	end
+
 	for _, v in pairs(Workspace:GetChildren()) do
 		if v:IsA("BasePart") and v.Shape == Enum.PartType.Ball then
-			return v
+			if v.Size.Magnitude > 0.5 and v.Size.Magnitude < 15 then
+				BallCache = v
+				BallCacheTime = now
+				return v
+			end
 		end
 	end
+
+	for _, v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("Part") and v.Shape == Enum.PartType.Ball then
+			if v.Size.Magnitude > 0.5 and v.Size.Magnitude < 15 then
+				BallCache = v
+				BallCacheTime = now
+				return v
+			end
+		end
+	end
+
 	return nil
 end
 
