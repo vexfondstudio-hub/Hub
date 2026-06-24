@@ -85,7 +85,7 @@ local AimSmoothnessSlider = AimBotTab:CreateSlider({
 })
 
 local AimBotKeybind = AimBotTab:CreateKeybind({
-	Name = "AimBot Keybind",
+	Name = "AimBot Keybind (Hold)",
 	CurrentKeybind = "Q",
 	HoldToInteract = true,
 	Flag = "AimBotKeybind",
@@ -259,7 +259,7 @@ local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
-local CoreGui = game:GetService("CoreGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -467,16 +467,22 @@ local function getClosestPlayer(throughWalls, fov, hitbox)
 	return closest
 end
 
+local function isKeybindPressed()
+	local keybind = AimBotKeybind.CurrentKeybind
+	if not keybind or keybind == "" then return true end
+
+	if isMobile then
+		return UserInputService:IsMouseButtonPressed(Enum.UserInputType.Touch)
+	else
+		return UserInputService:IsKeyDown(Enum.KeyCode[keybind])
+	end
+end
+
 RunService.RenderStepped:Connect(function()
 	local aimBotEnabled = AimBotToggle.CurrentValue
-	local aimBotKeybind = AimBotKeybind.CurrentKeybind
-	local isHoldingKeybind = false
+	local isHoldingKeybind = isKeybindPressed()
 
-	if aimBotKeybind and aimBotKeybind ~= "" then
-		isHoldingKeybind = UserInputService:IsKeyDown(Enum.KeyCode[aimBotKeybind])
-	end
-
-	if aimBotEnabled and (aimBotKeybind == "" or isHoldingKeybind) then
+	if aimBotEnabled and isHoldingKeybind then
 		local throughWalls = AimThroughWallsToggle.CurrentValue
 		local hitbox = HitboxDropdown.CurrentOption
 		local fov = AimFOVSlider.CurrentValue
@@ -550,23 +556,46 @@ RunService.RenderStepped:Connect(function()
 		local flySpeed = FlySpeedSlider.CurrentValue
 		local moveDirection = Vector3.new(0, 0, 0)
 
-		if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-			moveDirection = moveDirection + Camera.CFrame.LookVector
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-			moveDirection = moveDirection - Camera.CFrame.LookVector
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-			moveDirection = moveDirection - Camera.CFrame.RightVector
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-			moveDirection = moveDirection + Camera.CFrame.RightVector
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+		if isMobile then
+			local touchPoints = UserInputService:GetTouchPoints()
+			if #touchPoints > 0 then
+				local touch = touchPoints[1]
+				local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+				local touchOffset = touch.Position - screenCenter
+
+				if touchOffset.X > 50 then
+					moveDirection = moveDirection + Camera.CFrame.RightVector
+				elseif touchOffset.X < -50 then
+					moveDirection = moveDirection - Camera.CFrame.RightVector
+				end
+
+				if touchOffset.Y > 50 then
+					moveDirection = moveDirection - Camera.CFrame.LookVector
+				elseif touchOffset.Y < -50 then
+					moveDirection = moveDirection + Camera.CFrame.LookVector
+				end
+			end
+
 			moveDirection = moveDirection + Vector3.new(0, 1, 0)
-		end
-		if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-			moveDirection = moveDirection - Vector3.new(0, 1, 0)
+		else
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+				moveDirection = moveDirection + Camera.CFrame.LookVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+				moveDirection = moveDirection - Camera.CFrame.LookVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+				moveDirection = moveDirection - Camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+				moveDirection = moveDirection + Camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+				moveDirection = moveDirection + Vector3.new(0, 1, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveDirection = moveDirection - Vector3.new(0, 1, 0)
+			end
 		end
 
 		if moveDirection.Magnitude > 0 then
@@ -595,7 +624,15 @@ RunService.RenderStepped:Connect(function()
 			if humanoid then
 				local state = humanoid:GetState()
 				if state == Enum.HumanoidStateType.Freefall then
-					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+					if isMobile then
+						VirtualInputManager:SendTouchEvent(100, 500, 0, true, game, 0)
+						wait(0.05)
+						VirtualInputManager:SendTouchEvent(100, 500, 0, false, game, 0)
+					else
+						VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+						wait(0.05)
+						VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+					end
 				end
 			end
 		end
@@ -624,6 +661,6 @@ end)
 
 Rayfield:Notify({
 	Title = "scriptBOB",
-	Content = "Loaded successfully! v1.0.0 - Rayfield UI",
+	Content = "Loaded successfully! v1.0.0 - PC & Mobile",
 	Duration = 5,
 })
