@@ -15,6 +15,7 @@ local Window = Library:CreateWindow({
 	Icon = 95816097006870,
 	NotifySide = "Right",
 	ShowCustomCursor = true,
+	MobileButtonsSide = "Left",
 })
 
 local Tabs = {
@@ -76,6 +77,7 @@ LeftGroupBox:AddToggle("InfinityJump", {
 LeftGroupBox:AddDivider()
 
 LeftGroupBox:AddLabel("Eagle Hub v1.0.0 - Blade Ball")
+LeftGroupBox:AddLabel("PC & Mobile Compatible")
 
 local ESPGroupBox = Tabs.ESP:AddLeftGroupbox("ESP", "eye")
 
@@ -175,9 +177,13 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
+
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "EagleHubESP"
@@ -266,6 +272,38 @@ local function clearESP()
 	end
 end
 
+local function clickPC()
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+	wait(0.05)
+	VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+local function clickMobile()
+	local player = LocalPlayer
+	local character = player.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local ball = getBall()
+	if ball then
+		local screenPos, onScreen = Camera:WorldToViewportPoint(ball.Position)
+		if onScreen then
+			VirtualInputManager:SendTouchEvent(screenPos.X, screenPos.Y, 0, true, game, 0)
+			wait(0.05)
+			VirtualInputManager:SendTouchEvent(screenPos.X, screenPos.Y, 0, false, game, 0)
+		end
+	end
+end
+
+local function click()
+	if isMobile then
+		clickMobile()
+	else
+		clickPC()
+	end
+end
+
 task.spawn(function()
 	while true do
 		wait(0.01)
@@ -282,9 +320,7 @@ task.spawn(function()
 						if delay > 0 then
 							wait(delay / 1000)
 						end
-						VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-						wait(0.05)
-						VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+						click()
 					end
 				end
 			end
@@ -302,7 +338,15 @@ task.spawn(function()
 				if humanoid then
 					local state = humanoid:GetState()
 					if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Landed then
-						humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+						if isMobile then
+							VirtualInputManager:SendTouchEvent(100, 500, 0, true, game, 0)
+							wait(0.05)
+							VirtualInputManager:SendTouchEvent(100, 500, 0, false, game, 0)
+						else
+							VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+							wait(0.05)
+							VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+						end
 					end
 				end
 			end
@@ -348,7 +392,6 @@ task.spawn(function()
 								local esp = createESP(hrp, playerColor, player.Name, true)
 								if esp then
 									local nameLabel = esp:FindFirstChild("Frame") and esp.Frame:FindFirstChild("TextLabel")
-									local distLabel = esp:FindFirstChild("Frame") and esp.Frame:FindFirstChildOfClass("TextLabel", 2)
 									if nameLabel then
 										nameLabel.Visible = showNames ~= false
 									end
@@ -416,6 +459,6 @@ end)
 
 Library:Notify({
 	Title = "Eagle Hub",
-	Description = "Loaded successfully! v1.0.0",
+	Description = "Loaded successfully! v1.0.0 (PC & Mobile)",
 	Duration = 5,
 })
