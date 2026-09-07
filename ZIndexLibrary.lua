@@ -38,6 +38,7 @@ local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 local function Tween(obj, props, duration, easing, direction)
@@ -156,7 +157,8 @@ function ZIndex:CreateWindow(data)
     local main = Instance.new("Frame")
     main.Name = "Main"
     main.Size = UDim2.new(0, 520, 0, 520)
-    main.Position = UDim2.new(0.5, -260, 0.5, -260)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.BackgroundColor3 = ZIndex.Theme.Background
     main.BackgroundTransparency = ZIndex.Theme.BackgroundTransparency
     main.BorderSizePixel = 0
@@ -165,6 +167,34 @@ function ZIndex:CreateWindow(data)
     main.ClipsDescendants = true
     main.Parent = gui
     main.ZIndex = 10
+
+    local uiScale = Instance.new("UIScale")
+    uiScale.Name = "ResponsiveScale"
+    uiScale.Parent = main
+
+    local function UpdateScale()
+        local camera = workspace.CurrentCamera
+        if not camera then return end
+        local viewport = camera.ViewportSize
+        local margin = UserInputService.TouchEnabled and 24 or 40
+        local scale = math.min((viewport.X - margin) / 520, (viewport.Y - margin) / 520)
+        uiScale.Scale = math.clamp(scale, 0.42, 1)
+    end
+
+    UpdateScale()
+    task.spawn(function()
+        local camera = workspace.CurrentCamera
+        if camera then
+            camera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateScale)
+        end
+        workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+            local newCamera = workspace.CurrentCamera
+            if newCamera then
+                newCamera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateScale)
+                UpdateScale()
+            end
+        end)
+    end)
 
     RoundCorners(main, 260)
     AddStroke(main, Color3.fromRGB(70, 70, 95), 1)
