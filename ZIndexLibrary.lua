@@ -16,20 +16,22 @@ ZIndex.Icons = {
 }
 
 ZIndex.Theme = {
-    Background = Color3.fromRGB(25, 25, 35),
-    Topbar = Color3.fromRGB(30, 30, 40),
-    Accent = Color3.fromRGB(88, 101, 242),
-    AccentDark = Color3.fromRGB(67, 78, 196),
+    Background = Color3.fromRGB(20, 20, 28),
+    BackgroundTransparency = 0.25,
+    Topbar = Color3.fromRGB(25, 25, 35),
+    TopbarTransparency = 0.15,
+    Accent = Color3.fromRGB(99, 102, 241),
+    AccentDark = Color3.fromRGB(79, 82, 221),
     Text = Color3.fromRGB(255, 255, 255),
-    TextDark = Color3.fromRGB(180, 180, 190),
-    Element = Color3.fromRGB(35, 35, 48),
-    ElementHover = Color3.fromRGB(45, 45, 60),
-    ToggleOn = Color3.fromRGB(88, 101, 242),
-    ToggleOff = Color3.fromRGB(60, 60, 75),
+    TextDark = Color3.fromRGB(160, 160, 175),
+    Element = Color3.fromRGB(30, 30, 42),
+    ElementTransparency = 0.3,
+    ElementHover = Color3.fromRGB(40, 40, 55),
+    ToggleOn = Color3.fromRGB(99, 102, 241),
+    ToggleOff = Color3.fromRGB(55, 55, 70),
     Success = Color3.fromRGB(67, 181, 129),
     Error = Color3.fromRGB(237, 66, 69),
     Warning = Color3.fromRGB(250, 166, 26),
-    Shadow = Color3.fromRGB(0, 0, 0),
 }
 
 local TweenService = game:GetService("TweenService")
@@ -56,27 +58,11 @@ end
 local function AddStroke(obj, color, thickness)
     thickness = thickness or 1
     local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Color3.fromRGB(50, 50, 65)
+    stroke.Color = color or Color3.fromRGB(60, 60, 80)
     stroke.Thickness = thickness
+    stroke.Transparency = 0.5
     stroke.Parent = obj
     return stroke
-end
-
-local function AddShadow(obj)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    shadow.BackgroundTransparency = 1
-    shadow.Position = UDim2.new(0.5, 0, 0.5, 4)
-    shadow.Size = UDim2.new(1, 24, 1, 24)
-    shadow.ZIndex = obj.ZIndex - 1
-    shadow.Image = "rbxassetid://6014261993"
-    shadow.ImageColor3 = ZIndex.Theme.Shadow
-    shadow.ImageTransparency = 0.6
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
-    shadow.Parent = obj
-    return shadow
 end
 
 function ZIndex:Notify(data)
@@ -104,24 +90,25 @@ function ZIndex:Notify(data)
     notif.Size = UDim2.new(0, 300, 0, 70)
     notif.Position = UDim2.new(1, 20, 0.85, 0)
     notif.BackgroundColor3 = ZIndex.Theme.Background
+    notif.BackgroundTransparency = 0.15
     notif.BorderSizePixel = 0
     notif.Parent = notifContainer
     notif.ZIndex = 100
 
-    RoundCorners(notif, 10)
-    AddStroke(notif, Color3.fromRGB(50, 50, 65))
+    RoundCorners(notif, 16)
+    AddStroke(notif, Color3.fromRGB(80, 80, 110), 1)
 
     local iconLabel = Instance.new("ImageLabel")
-    iconLabel.Size = UDim2.new(0, 36, 0, 36)
-    iconLabel.Position = UDim2.new(0, 12, 0.5, -18)
+    iconLabel.Size = UDim2.new(0, 32, 0, 32)
+    iconLabel.Position = UDim2.new(0, 14, 0.5, -16)
     iconLabel.BackgroundTransparency = 1
     iconLabel.Image = icon
     iconLabel.ImageColor3 = ZIndex.Theme.Accent
     iconLabel.Parent = notif
 
     local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, -60, 0, 20)
-    titleLbl.Position = UDim2.new(0, 56, 0, 8)
+    titleLbl.Size = UDim2.new(1, -60, 0, 18)
+    titleLbl.Position = UDim2.new(0, 54, 0, 10)
     titleLbl.BackgroundTransparency = 1
     titleLbl.Text = title
     titleLbl.TextColor3 = ZIndex.Theme.Text
@@ -131,8 +118,8 @@ function ZIndex:Notify(data)
     titleLbl.Parent = notif
 
     local contentLbl = Instance.new("TextLabel")
-    contentLbl.Size = UDim2.new(1, -60, 0, 34)
-    contentLbl.Position = UDim2.new(0, 56, 0, 28)
+    contentLbl.Size = UDim2.new(1, -60, 0, 30)
+    contentLbl.Position = UDim2.new(0, 54, 0, 28)
     contentLbl.BackgroundTransparency = 1
     contentLbl.Text = content
     contentLbl.TextColor3 = ZIndex.Theme.TextDark
@@ -171,6 +158,7 @@ function ZIndex:CreateWindow(data)
     main.Size = UDim2.new(0, 520, 0, 380)
     main.Position = UDim2.new(0.5, -260, 0.5, -190)
     main.BackgroundColor3 = ZIndex.Theme.Background
+    main.BackgroundTransparency = ZIndex.Theme.BackgroundTransparency
     main.BorderSizePixel = 0
     main.Active = true
     main.Draggable = true
@@ -178,23 +166,24 @@ function ZIndex:CreateWindow(data)
     main.Parent = gui
     main.ZIndex = 10
 
-    RoundCorners(main, 12)
-    AddShadow(main)
+    RoundCorners(main, 20)
+    AddStroke(main, Color3.fromRGB(70, 70, 95), 1)
 
     local topbar = Instance.new("Frame")
     topbar.Name = "Topbar"
-    topbar.Size = UDim2.new(1, 0, 0, 42)
+    topbar.Size = UDim2.new(1, 0, 0, 44)
     topbar.BackgroundColor3 = ZIndex.Theme.Topbar
+    topbar.BackgroundTransparency = ZIndex.Theme.TopbarTransparency
     topbar.BorderSizePixel = 0
     topbar.Parent = main
     topbar.ZIndex = 11
 
-    RoundCorners(topbar, 12)
+    RoundCorners(topbar, 20)
 
     local titleLbl = Instance.new("TextLabel")
     titleLbl.Name = "Title"
     titleLbl.Size = UDim2.new(0, 200, 1, 0)
-    titleLbl.Position = UDim2.new(0, 16, 0, 0)
+    titleLbl.Position = UDim2.new(0, 18, 0, 0)
     titleLbl.BackgroundTransparency = 1
     titleLbl.Text = title
     titleLbl.TextColor3 = ZIndex.Theme.Text
@@ -207,40 +196,41 @@ function ZIndex:CreateWindow(data)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "Close"
     closeBtn.Size = UDim2.new(0, 28, 0, 28)
-    closeBtn.Position = UDim2.new(1, -38, 0, 7)
+    closeBtn.Position = UDim2.new(1, -38, 0, 8)
     closeBtn.BackgroundColor3 = ZIndex.Theme.Error
     closeBtn.Text = ""
     closeBtn.AutoButtonColor = false
     closeBtn.Parent = topbar
     closeBtn.ZIndex = 12
 
-    RoundCorners(closeBtn, 6)
+    RoundCorners(closeBtn, 14)
 
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Name = "Minimize"
     minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
-    minimizeBtn.Position = UDim2.new(1, -72, 0, 7)
+    minimizeBtn.Position = UDim2.new(1, -72, 0, 8)
     minimizeBtn.BackgroundColor3 = ZIndex.Theme.Warning
     minimizeBtn.Text = ""
     minimizeBtn.AutoButtonColor = false
     minimizeBtn.Parent = topbar
     minimizeBtn.ZIndex = 12
 
-    RoundCorners(minimizeBtn, 6)
+    RoundCorners(minimizeBtn, 14)
 
     local tabContainer = Instance.new("Frame")
     tabContainer.Name = "TabContainer"
-    tabContainer.Size = UDim2.new(0, 140, 1, -42)
-    tabContainer.Position = UDim2.new(0, 0, 0, 42)
+    tabContainer.Size = UDim2.new(0, 140, 1, -44)
+    tabContainer.Position = UDim2.new(0, 0, 0, 44)
     tabContainer.BackgroundColor3 = ZIndex.Theme.Topbar
+    tabContainer.BackgroundTransparency = ZIndex.Theme.TopbarTransparency
     tabContainer.BorderSizePixel = 0
     tabContainer.Parent = main
     tabContainer.ZIndex = 11
 
     local tabList = Instance.new("ScrollingFrame")
     tabList.Name = "TabList"
-    tabList.Size = UDim2.new(1, -8, 1, -16)
-    tabList.Position = UDim2.new(0, 4, 0, 8)
+    tabList.Size = UDim2.new(1, -12, 1, -20)
+    tabList.Position = UDim2.new(0, 6, 0, 10)
     tabList.BackgroundTransparency = 1
     tabList.ScrollBarThickness = 0
     tabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -250,13 +240,13 @@ function ZIndex:CreateWindow(data)
 
     local tabLayout = Instance.new("UIListLayout")
     tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabLayout.Padding = UDim.new(0, 4)
+    tabLayout.Padding = UDim.new(0, 6)
     tabLayout.Parent = tabList
 
     local contentContainer = Instance.new("Frame")
     contentContainer.Name = "Content"
-    contentContainer.Size = UDim2.new(1, -140, 1, -42)
-    contentContainer.Position = UDim2.new(0, 140, 0, 42)
+    contentContainer.Size = UDim2.new(1, -140, 1, -44)
+    contentContainer.Position = UDim2.new(0, 140, 0, 44)
     contentContainer.BackgroundTransparency = 1
     contentContainer.Parent = main
     contentContainer.ZIndex = 11
@@ -281,7 +271,7 @@ function ZIndex:CreateWindow(data)
     minimizeBtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            Tween(main, {Size = UDim2.new(0, 520, 0, 42)}, 0.3)
+            Tween(main, {Size = UDim2.new(0, 520, 0, 44)}, 0.3)
         else
             Tween(main, {Size = UDim2.new(0, 520, 0, 380)}, 0.3)
         end
@@ -298,18 +288,20 @@ function ZIndex:CreateTab(window, data)
 
     local tabBtn = Instance.new("TextButton")
     tabBtn.Name = name
-    tabBtn.Size = UDim2.new(1, -8, 0, 36)
+    tabBtn.Size = UDim2.new(1, 0, 0, 38)
     tabBtn.BackgroundColor3 = ZIndex.Theme.Element
+    tabBtn.BackgroundTransparency = ZIndex.Theme.ElementTransparency
     tabBtn.Text = ""
     tabBtn.AutoButtonColor = false
     tabBtn.Parent = window.TabList
     tabBtn.ZIndex = 12
 
-    RoundCorners(tabBtn, 8)
+    RoundCorners(tabBtn, 19)
+    AddStroke(tabBtn, Color3.fromRGB(55, 55, 75), 1)
 
     local iconImg = Instance.new("ImageLabel")
     iconImg.Size = UDim2.new(0, 18, 0, 18)
-    iconImg.Position = UDim2.new(0, 10, 0.5, -9)
+    iconImg.Position = UDim2.new(0, 12, 0.5, -9)
     iconImg.BackgroundTransparency = 1
     iconImg.Image = icon
     iconImg.ImageColor3 = ZIndex.Theme.TextDark
@@ -317,8 +309,8 @@ function ZIndex:CreateTab(window, data)
     iconImg.ZIndex = 13
 
     local nameLbl = Instance.new("TextLabel")
-    nameLbl.Size = UDim2.new(1, -36, 1, 0)
-    nameLbl.Position = UDim2.new(0, 32, 0, 0)
+    nameLbl.Size = UDim2.new(1, -38, 1, 0)
+    nameLbl.Position = UDim2.new(0, 34, 0, 0)
     nameLbl.BackgroundTransparency = 1
     nameLbl.Text = name
     nameLbl.TextColor3 = ZIndex.Theme.TextDark
@@ -357,26 +349,26 @@ function ZIndex:CreateTab(window, data)
     tabBtn.MouseButton1Click:Connect(function()
         if window.CurrentTab then
             window.CurrentTab.Content.Visible = false
-            Tween(window.CurrentTab.Button, {BackgroundColor3 = ZIndex.Theme.Element}, 0.2)
+            Tween(window.CurrentTab.Button, {BackgroundTransparency = ZIndex.Theme.ElementTransparency}, 0.2)
             window.CurrentTab.Icon.ImageColor3 = ZIndex.Theme.TextDark
             window.CurrentTab.Label.TextColor3 = ZIndex.Theme.TextDark
         end
         window.CurrentTab = tab
         tabContent.Visible = true
-        Tween(tabBtn, {BackgroundColor3 = ZIndex.Theme.Accent}, 0.2)
+        Tween(tabBtn, {BackgroundTransparency = 0.05}, 0.2)
         iconImg.ImageColor3 = ZIndex.Theme.Text
         nameLbl.TextColor3 = ZIndex.Theme.Text
     end)
 
     tabBtn.MouseEnter:Connect(function()
         if window.CurrentTab ~= tab then
-            Tween(tabBtn, {BackgroundColor3 = ZIndex.Theme.ElementHover}, 0.15)
+            Tween(tabBtn, {BackgroundTransparency = 0.15}, 0.15)
         end
     end)
 
     tabBtn.MouseLeave:Connect(function()
         if window.CurrentTab ~= tab then
-            Tween(tabBtn, {BackgroundColor3 = ZIndex.Theme.Element}, 0.15)
+            Tween(tabBtn, {BackgroundTransparency = ZIndex.Theme.ElementTransparency}, 0.15)
         end
     end)
 
@@ -398,11 +390,13 @@ function ZIndex:CreateToggle(tab, data)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -10, 0, 40)
     frame.BackgroundColor3 = ZIndex.Theme.Element
+    frame.BackgroundTransparency = ZIndex.Theme.ElementTransparency
     frame.BorderSizePixel = 0
     frame.Parent = tab
     frame.ZIndex = 13
 
-    RoundCorners(frame, 8)
+    RoundCorners(frame, 12)
+    AddStroke(frame, Color3.fromRGB(55, 55, 75), 1)
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 200, 1, 0)
@@ -417,8 +411,8 @@ function ZIndex:CreateToggle(tab, data)
     label.ZIndex = 14
 
     local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 44, 0, 24)
-    toggle.Position = UDim2.new(1, -54, 0.5, -12)
+    toggle.Size = UDim2.new(0, 46, 0, 24)
+    toggle.Position = UDim2.new(1, -56, 0.5, -12)
     toggle.BackgroundColor3 = default and ZIndex.Theme.ToggleOn or ZIndex.Theme.ToggleOff
     toggle.Text = ""
     toggle.AutoButtonColor = false
@@ -428,19 +422,19 @@ function ZIndex:CreateToggle(tab, data)
     RoundCorners(toggle, 12)
 
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 18, 0, 18)
-    knob.Position = default and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 4, 0.5, -9)
+    knob.Size = UDim2.new(0, 20, 0, 20)
+    knob.Position = default and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     knob.BorderSizePixel = 0
     knob.Parent = toggle
     knob.ZIndex = 15
 
-    RoundCorners(knob, 9)
+    RoundCorners(knob, 10)
 
     local enabled = default
     toggle.MouseButton1Click:Connect(function()
         enabled = not enabled
-        local targetPos = enabled and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 4, 0.5, -9)
+        local targetPos = enabled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
         local targetColor = enabled and ZIndex.Theme.ToggleOn or ZIndex.Theme.ToggleOff
         Tween(knob, {Position = targetPos}, 0.2)
         Tween(toggle, {BackgroundColor3 = targetColor}, 0.2)
@@ -453,7 +447,7 @@ function ZIndex:CreateToggle(tab, data)
     return {
         Set = function(v)
             enabled = v
-            local targetPos = enabled and UDim2.new(1, -22, 0.5, -9) or UDim2.new(0, 4, 0.5, -9)
+            local targetPos = enabled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
             local targetColor = enabled and ZIndex.Theme.ToggleOn or ZIndex.Theme.ToggleOff
             knob.Position = targetPos
             toggle.BackgroundColor3 = targetColor
@@ -472,6 +466,7 @@ function ZIndex:CreateButton(tab, data)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -10, 0, 38)
     btn.BackgroundColor3 = ZIndex.Theme.Accent
+    btn.BackgroundTransparency = 0.1
     btn.Text = name
     btn.TextColor3 = ZIndex.Theme.Text
     btn.TextSize = 13
@@ -480,7 +475,8 @@ function ZIndex:CreateButton(tab, data)
     btn.Parent = tab
     btn.ZIndex = 13
 
-    RoundCorners(btn, 8)
+    RoundCorners(btn, 12)
+    AddStroke(btn, Color3.fromRGB(120, 120, 255), 1)
 
     btn.MouseEnter:Connect(function()
         Tween(btn, {BackgroundColor3 = ZIndex.Theme.AccentDark}, 0.15)
@@ -510,13 +506,15 @@ function ZIndex:CreateSlider(tab, data)
     local flag = data.Flag
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 50)
+    frame.Size = UDim2.new(1, -10, 0, 52)
     frame.BackgroundColor3 = ZIndex.Theme.Element
+    frame.BackgroundTransparency = ZIndex.Theme.ElementTransparency
     frame.BorderSizePixel = 0
     frame.Parent = tab
     frame.ZIndex = 13
 
-    RoundCorners(frame, 8)
+    RoundCorners(frame, 12)
+    AddStroke(frame, Color3.fromRGB(55, 55, 75), 1)
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 200, 0, 20)
@@ -544,7 +542,7 @@ function ZIndex:CreateSlider(tab, data)
 
     local track = Instance.new("Frame")
     track.Size = UDim2.new(1, -28, 0, 6)
-    track.Position = UDim2.new(0, 14, 0, 32)
+    track.Position = UDim2.new(0, 14, 0, 34)
     track.BackgroundColor3 = ZIndex.Theme.ToggleOff
     track.BorderSizePixel = 0
     track.Parent = frame
@@ -562,14 +560,14 @@ function ZIndex:CreateSlider(tab, data)
     RoundCorners(fill, 3)
 
     local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 14, 0, 14)
-    knob.Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7)
+    knob.Size = UDim2.new(0, 16, 0, 16)
+    knob.Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8)
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     knob.BorderSizePixel = 0
     knob.Parent = track
     knob.ZIndex = 16
 
-    RoundCorners(knob, 7)
+    RoundCorners(knob, 8)
 
     local dragging = false
     local currentValue = default
@@ -578,7 +576,7 @@ function ZIndex:CreateSlider(tab, data)
         local pos = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
         currentValue = math.floor(min + pos * (max - min))
         fill.Size = UDim2.new(pos, 0, 1, 0)
-        knob.Position = UDim2.new(pos, -7, 0.5, -7)
+        knob.Position = UDim2.new(pos, -8, 0.5, -8)
         valueLbl.Text = tostring(currentValue)
         if flag then ZIndex.Flags[flag] = currentValue end
         callback(currentValue)
@@ -617,7 +615,7 @@ function ZIndex:CreateSlider(tab, data)
             currentValue = v
             local pos = (v - min) / (max - min)
             fill.Size = UDim2.new(pos, 0, 1, 0)
-            knob.Position = UDim2.new(pos, -7, 0.5, -7)
+            knob.Position = UDim2.new(pos, -8, 0.5, -8)
             valueLbl.Text = tostring(v)
             if flag then ZIndex.Flags[flag] = currentValue end
             callback(currentValue)
@@ -637,11 +635,13 @@ function ZIndex:CreateDropdown(tab, data)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -10, 0, 40)
     frame.BackgroundColor3 = ZIndex.Theme.Element
+    frame.BackgroundTransparency = ZIndex.Theme.ElementTransparency
     frame.BorderSizePixel = 0
     frame.Parent = tab
     frame.ZIndex = 13
 
-    RoundCorners(frame, 8)
+    RoundCorners(frame, 12)
+    AddStroke(frame, Color3.fromRGB(55, 55, 75), 1)
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 120, 1, 0)
@@ -659,6 +659,7 @@ function ZIndex:CreateDropdown(tab, data)
     dropdown.Size = UDim2.new(0, 160, 0, 28)
     dropdown.Position = UDim2.new(1, -172, 0.5, -14)
     dropdown.BackgroundColor3 = ZIndex.Theme.Topbar
+    dropdown.BackgroundTransparency = 0.2
     dropdown.Text = default or "Select..."
     dropdown.TextColor3 = ZIndex.Theme.Text
     dropdown.TextSize = 12
@@ -667,8 +668,8 @@ function ZIndex:CreateDropdown(tab, data)
     dropdown.Parent = frame
     dropdown.ZIndex = 14
 
-    RoundCorners(dropdown, 6)
-    AddStroke(dropdown, Color3.fromRGB(50, 50, 65))
+    RoundCorners(dropdown, 8)
+    AddStroke(dropdown, Color3.fromRGB(55, 55, 75), 1)
 
     local selected = default
 
@@ -677,12 +678,13 @@ function ZIndex:CreateDropdown(tab, data)
         menu.Size = UDim2.new(0, 160, 0, math.min(#values * 28, 180))
         menu.Position = UDim2.new(0, 0, 1, 4)
         menu.BackgroundColor3 = ZIndex.Theme.Topbar
+        menu.BackgroundTransparency = 0.1
         menu.BorderSizePixel = 0
         menu.ZIndex = 20
         menu.Parent = dropdown
 
-        RoundCorners(menu, 6)
-        AddStroke(menu, Color3.fromRGB(50, 50, 65))
+        RoundCorners(menu, 12)
+        AddStroke(menu, Color3.fromRGB(55, 55, 75), 1)
 
         local scroll = Instance.new("ScrollingFrame")
         scroll.Size = UDim2.new(1, -8, 1, -8)
@@ -703,6 +705,7 @@ function ZIndex:CreateDropdown(tab, data)
             local opt = Instance.new("TextButton")
             opt.Size = UDim2.new(1, 0, 0, 26)
             opt.BackgroundColor3 = ZIndex.Theme.Element
+            opt.BackgroundTransparency = 0.2
             opt.Text = val
             opt.TextColor3 = ZIndex.Theme.Text
             opt.TextSize = 11
@@ -711,13 +714,13 @@ function ZIndex:CreateDropdown(tab, data)
             opt.ZIndex = 22
             opt.Parent = scroll
 
-            RoundCorners(opt, 4)
+            RoundCorners(opt, 6)
 
             opt.MouseEnter:Connect(function()
-                Tween(opt, {BackgroundColor3 = ZIndex.Theme.Accent}, 0.15)
+                Tween(opt, {BackgroundTransparency = 0.05}, 0.15)
             end)
             opt.MouseLeave:Connect(function()
-                Tween(opt, {BackgroundColor3 = ZIndex.Theme.Element}, 0.15)
+                Tween(opt, {BackgroundTransparency = 0.2}, 0.15)
             end)
 
             opt.MouseButton1Click:Connect(function()
@@ -761,11 +764,13 @@ function ZIndex:CreateInput(tab, data)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -10, 0, 40)
     frame.BackgroundColor3 = ZIndex.Theme.Element
+    frame.BackgroundTransparency = ZIndex.Theme.ElementTransparency
     frame.BorderSizePixel = 0
     frame.Parent = tab
     frame.ZIndex = 13
 
-    RoundCorners(frame, 8)
+    RoundCorners(frame, 12)
+    AddStroke(frame, Color3.fromRGB(55, 55, 75), 1)
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 120, 1, 0)
@@ -783,6 +788,7 @@ function ZIndex:CreateInput(tab, data)
     input.Size = UDim2.new(0, 160, 0, 28)
     input.Position = UDim2.new(1, -172, 0.5, -14)
     input.BackgroundColor3 = ZIndex.Theme.Topbar
+    input.BackgroundTransparency = 0.2
     input.Text = default
     input.PlaceholderText = placeholder
     input.TextColor3 = ZIndex.Theme.Text
@@ -793,8 +799,8 @@ function ZIndex:CreateInput(tab, data)
     input.Parent = frame
     input.ZIndex = 14
 
-    RoundCorners(input, 6)
-    AddStroke(input, Color3.fromRGB(50, 50, 65))
+    RoundCorners(input, 8)
+    AddStroke(input, Color3.fromRGB(55, 55, 75), 1)
 
     input.FocusLost:Connect(function(enterPressed)
         if flag then ZIndex.Flags[flag] = input.Text end
@@ -838,7 +844,8 @@ function ZIndex:CreateDivider(tab)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -20, 0, 1)
     frame.Position = UDim2.new(0, 10, 0, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+    frame.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
+    frame.BackgroundTransparency = 0.5
     frame.BorderSizePixel = 0
     frame.Parent = tab
     frame.ZIndex = 13
